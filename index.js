@@ -59,10 +59,10 @@ app.post('/webhook', express.raw({type: 'application/json'}), (request, response
 const opts = {};
 opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = process.env.JWT_SECRET_KEY;  // TODO: should not be in code;
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-// app.use(express.static(path.resolve(__dirname,'build')))
-app.use(express.static('build'))
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.resolve(__dirname,'build')))
+//app.use(express.static('build'))
 app.use(cookieParser());
  // app.use(express.raw({type: 'application/json'}));
 
