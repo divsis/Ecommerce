@@ -27,7 +27,7 @@ import { Order } from "./model/Order.model.js";
 const endpointSecret = process.env.ENDPOINT_SECRET;
 
 //app.use(express.raw({type: 'application/json'}));
-
+app.use('/webhook', express.raw({type: "*/*"}))
 app.post('/webhook', express.raw({type: 'application/json'}), async(request, response) => {
   const sig = request.headers['stripe-signature'];
 
