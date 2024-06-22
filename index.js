@@ -23,7 +23,7 @@ import path from "path"
 import Stripe from "stripe";
 import {fileURLToPath} from 'url';
 import 'dotenv/config'
-
+import { Order } from "./model/Order.model.js";
 const endpointSecret = process.env.ENDPOINT_SECRET;
 app.post('/webhook', express.raw({type: 'application/json'}), async(request, response) => {
   const sig = request.headers['stripe-signature'];
@@ -43,6 +43,7 @@ app.post('/webhook', express.raw({type: 'application/json'}), async(request, res
       const paymentIntentSucceeded = event.data.object;
       const order = await Order.findById(paymentIntentSucceeded.metadata.orderId);
       order.paymentStatus = 'received';
+      console.log(order)
       await order.save()
       // Then define and call a function to handle the event payment_intent.succeeded
       break;
@@ -94,7 +95,7 @@ app.use('/users',isAuth(), userRouter);
 app.use('/auth', authRouter);
 app.use('/cart',isAuth(), cartRouter);
 app.use('/orders',isAuth(), orderRouter);
-
+app.get('*', (req, res) => res.sendFile(path.resolve('build', 'index.html')));
 
 passport.use(
   'local',
@@ -210,7 +211,5 @@ connectDB()
     console.log(`Database connection failed`,err);
 })
 
-app.get('/',(req,res)=>{
-    res.json({status:"success"})
-})
+
 
