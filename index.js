@@ -14,7 +14,6 @@ import session from "express-session";
 import {Strategy as LocalStrategy} from "passport-local"
 import jwt from 'jsonwebtoken'
 import { Strategy as JwtStrategy } from 'passport-jwt';
-import { ExtractJwt as ExtractJwt } from 'passport-jwt';
 import { User } from "./model/User.model.js";
 import { isAuth,sanitizeUser,cookieExtractor } from "./services/common.js";
 import cookieParser from "cookie-parser";
@@ -24,13 +23,18 @@ import Stripe from "stripe";
 import {fileURLToPath} from 'url';
 import 'dotenv/config'
 import { Order } from "./model/Order.model.js";
+
 const endpointSecret = process.env.ENDPOINT_SECRET;
+
+//app.use(express.raw({type: 'application/json'}));
+
 app.post('/webhook', express.raw({type: 'application/json'}), async(request, response) => {
   const sig = request.headers['stripe-signature'];
 
   let event;
 
   try {
+    
     event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
   } catch (err) {
     response.status(400).send(`Webhook Error: ${err.message}`);
@@ -67,7 +71,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.resolve(__dirname,'build')))
 //app.use(express.static('build'))
 app.use(cookieParser());
- // app.use(express.raw({type: 'application/json'}));
+
 
 //
 // Passport Strategies
