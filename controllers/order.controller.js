@@ -1,5 +1,7 @@
 import { Order } from "../model/Order.model.js";
-
+import { User } from "../model/User.model.js";
+import { sendMail,invoiceTemplate } from "../services/common.js";
+import { Product } from "../model/Product.model.js";
 export const fetchOrdersByUser = async (req, res) => {
   const { id } = req.user;
     try {
@@ -13,8 +15,20 @@ export const fetchOrdersByUser = async (req, res) => {
 
   export const createOrder = async (req, res) => {
     const order = new Order(req.body);
+    // here we have to update stocks;
+
+    // for(let item of order.items){
+    //    let product =  await Product.findOne({_id:item.product.id})
+    //    product.$inc('stock',-1*item.quantity);
+    //    // for optimum performance we should make inventory outside of product.
+    //    await product.save()
+    // }
+
     try {
       const doc = await order.save();
+      const user = await User.findById(order.user)
+       // we can use await for this also 
+       sendMail({to:user.email,html:invoiceTemplate(order),subject:'Order Received' })
       res.status(201).json(doc);
     } catch (err) {
       res.status(400).json(err);

@@ -23,42 +23,46 @@ import Stripe from "stripe";
 import {fileURLToPath} from 'url';
 import 'dotenv/config'
 import { Order } from "./model/Order.model.js";
-
+import { env } from "process";
 const endpointSecret = process.env.ENDPOINT_SECRET;
 
 //app.use(express.raw({type: 'application/json'}));
-app.use('/webhook', express.raw({type: "*/*"}))
-app.post('/webhook', express.raw({type: 'application/json'}), async(request, response) => {
-  const sig = request.headers['stripe-signature'];
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  async (request, response) => {
+    const sig = request.headers['stripe-signature'];
 
-  let event;
+    let event;
 
-  try {
-    
-    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-  } catch (err) {
-    response.status(400).send(`Webhook Error: ${err.message}`);
-    return;
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    } catch (err) {
+      response.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntentSucceeded = event.data.object;
+
+        const order = await Order.findById(
+          paymentIntentSucceeded.metadata.orderId
+        );
+        order.paymentStatus = 'received';
+        await order.save();
+
+        break;
+      // ... handle other event types
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    // Return a 200 response to acknowledge receipt of the event
+    response.send();
   }
-
-  // Handle the event
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntentSucceeded = event.data.object;
-      const order = await Order.findById(paymentIntentSucceeded.metadata.orderId);
-      order.paymentStatus = 'received';
-      console.log(order)
-      await order.save()
-      // Then define and call a function to handle the event payment_intent.succeeded
-      break;
-    // ... handle other event types
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  // Return a 200 response to acknowledge receipt of the event
-  response.send();
-});
+);
 
 
 
@@ -171,7 +175,7 @@ passport.serializeUser(function (user, cb) {
 
 
 // This is your test secret API key.
-const stripe = new Stripe(process.env.STRIPE_SERVER_KEY);
+const stripe = Stripe(process.env.STRIPE_SERVER_KEY);
 
 
 
@@ -180,7 +184,7 @@ app.post("/create-payment-intent", async (req, res) => {
 
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: totalAmount*100,
+    amount: totalAmount*90,
     currency: "inr",
     // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
     automatic_payment_methods: {
