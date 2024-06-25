@@ -1,4 +1,4 @@
-import { Category } from "../model/Category.model.js";
+
 import { User } from "../model/User.model.js";
 
 

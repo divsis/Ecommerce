@@ -178,7 +178,7 @@ const stripe = Stripe(process.env.STRIPE_SERVER_KEY);
 
 
 
-app.post("/create-payment-intent", async (req, res) => {
+app.post("/#/create-payment-intent", async (req, res) => {
   const { totalAmount,orderId } = req.body;
 
   // Create a PaymentIntent with the order amount and currency
