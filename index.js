@@ -115,7 +115,7 @@ passport.use(
       const user = await User.findOne({ email: email });
       console.log(email, password, user);
       if (!user) {
-        return done(null, false, { message: 'invalid credentials' }); // for safety
+        return done(null, false, { message: 'User not Found' }); // for safety
       }
       crypto.pbkdf2(
         password,
@@ -125,7 +125,7 @@ passport.use(
         'sha256',
         async function (err, hashedPassword) {
           if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
-            return done(null, false, { message: 'invalid credentials' });
+            return done(null, false, { message: 'Invalid Credentials' });
           }
           const token = jwt.sign(sanitizeUser(user), process.env.JWT_SECRET_KEY);
           done(null, {id:user.id, role:user.role, token});
@@ -141,7 +141,6 @@ passport.use(
 passport.use(
   'jwt',
   new JwtStrategy(opts, async function (jwt_payload, done) {
-    console.log({ jwt_payload });
     try {
        const user = await User.findById(jwt_payload.id);
       if (user) {
@@ -156,7 +155,7 @@ passport.use(
 );
 
 passport.serializeUser(function (user, cb) {
-    console.log('serialize', user);
+   
     process.nextTick(function () {
       return cb(null, { id: user.id, role: user.role });
     });
@@ -165,7 +164,7 @@ passport.serializeUser(function (user, cb) {
   // this changes session variable req.user when called from authorized request
   
   passport.deserializeUser(function (user, cb) {
-    console.log('de-serialize', user);
+    
     process.nextTick(function () {
       return cb(null, user);
     });
