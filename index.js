@@ -25,8 +25,7 @@ import 'dotenv/config'
 import { Order } from "./model/Order.model.js";
 import { env } from "process";
 const endpointSecret = process.env.ENDPOINT_SECRET;
-
-//app.use(express.raw({type: 'application/json'}));
+app.use('/stripe/webhook', express.raw({type: "*/*"}))
 app.post(
   '/webhook',
   express.raw({ type: 'application/json' }),
